@@ -28,7 +28,7 @@ import importModels from './importModels.mjs'
  * @param {Boolean} [opt.autoGenPK=true] 輸入若數據pk(id)欄位沒給時則自動給予隨機uuid，預設true
  * @returns {Object} 回傳操作資料庫物件，各事件功能詳見說明
  */
-function WOrm(opt = {}) {
+function WOrmMssql(opt = {}) {
 
 
     //default
@@ -77,7 +77,7 @@ function WOrm(opt = {}) {
     /**
      * 查詢數據
      *
-     * @memberOf WOrm
+     * @memberOf WOrmMssql
      * @param {Object} [find={}] 輸入查詢條件物件
      * @returns {Promise} 回傳Promise，resolve回傳數據，reject回傳錯誤訊息
      */
@@ -161,7 +161,7 @@ function WOrm(opt = {}) {
     /**
      * 插入數據，插入同樣數據會自動產生不同_id，故insert前需自行判斷有無重複
      *
-     * @memberOf WOrm
+     * @memberOf WOrmMssql
      * @param {Object|Array} data 輸入數據物件或陣列
      * @returns {Promise} 回傳Promise，resolve回傳插入結果，reject回傳錯誤訊息
      */
@@ -209,7 +209,7 @@ function WOrm(opt = {}) {
     /**
      * 儲存數據
      *
-     * @memberOf WOrm
+     * @memberOf WOrmMssql
      * @param {Object|Array} data 輸入數據物件或陣列
      * @param {Object} [option={}] 輸入設定物件，預設為{}
      * @param {boolean} [option.autoInsert=true] 輸入是否於儲存時發現原本無數據，則自動改以插入處理，預設為true
@@ -358,7 +358,7 @@ function WOrm(opt = {}) {
     /**
      * 刪除數據
      *
-     * @memberOf WOrm
+     * @memberOf WOrmMssql
      * @param {Object|Array} data 輸入數據物件或陣列
      * @returns {Promise} 回傳Promise，resolve回傳刪除結果，reject回傳錯誤訊息
      */
@@ -448,7 +448,7 @@ function WOrm(opt = {}) {
     /**
      * 刪除全部數據，需與del分開，避免未傳數據導致直接刪除全表
      *
-     * @memberOf WOrm
+     * @memberOf WOrmMssql
      * @param {Object} [find={}] 輸入刪除條件物件
      * @returns {Promise} 回傳Promise，resolve回傳刪除結果，reject回傳錯誤訊息
      */
@@ -485,4 +485,4 @@ function WOrm(opt = {}) {
 }
 
 
-export default WOrm
+export default WOrmMssql
