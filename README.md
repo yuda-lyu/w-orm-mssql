@@ -14,7 +14,7 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `fs` and `path`.
+> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `fs`, `path` and `events`.
 
 ```alias
 npm i w-orm-mssql
@@ -71,6 +71,12 @@ async function test() {
     let w = wo(opt)
 
 
+    //on
+    w.on('change', function(mode, data, res) {
+        console.log('change', mode)
+    })
+
+
     //delAll
     await w.delAll()
         .then(function(msg) {
@@ -113,8 +119,8 @@ async function test() {
     console.log('select all', ss)
     // => select all [ { id: 'id-peter', name: 'peter(modify)', value: 123 },
                        { id: 'id-rosemary', name: 'rosemary(modify)', value: 123.456 },
-                       { id: '{random id}', name: 'kettle', value: 456 },
-                       { id: '{random id}', name: 'kettle(modify)', value: null }
+                       { id: '{random id}', name: 'kettle', value: 456 }, 
+                       { id: '{random id}', name: 'kettle(modify)', value: null } //autoInsert=true
                     ]
 
 

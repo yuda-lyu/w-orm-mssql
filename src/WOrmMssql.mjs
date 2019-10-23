@@ -1,3 +1,4 @@
+import events from 'events'
 import Sequelize from 'sequelize'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
@@ -56,22 +57,32 @@ function WOrmMssql(opt = {}) {
     }
 
 
-    //sequelize
-    let sequelize = new Sequelize(opt.url, {
-        define: {
-            timestamps: false
-        },
-        logging: opt.logging,
-    })
+    //ee
+    let ee = new events.EventEmitter()
 
 
-    //mds
-    let mds = importModels(opt.fdModels, sequelize)
+    function SeqInit() {
+
+        //sequelize
+        let sequelize = new Sequelize(opt.url, {
+            define: {
+                timestamps: false
+            },
+            logging: opt.logging,
+        })
+
+        //mds
+        let mds = importModels(opt.fdModels, sequelize)
+
+        return {
+            sequelize,
+            mds
+        }
+    }
 
 
     //Op
     let Op = Sequelize.Op
-    //console.log('Op', Op)
 
 
     /**
@@ -145,14 +156,20 @@ function WOrmMssql(opt = {}) {
         //useFind
         let useFind = cvFind(find)
 
+        //SeqInit
+        let si = SeqInit()
+
         //md
-        let md = mds[opt.cl]
+        let md = si.mds[opt.cl]
 
         //findAll
         let rs = await md.findAll({
             where: useFind,
             raw: true,
         })
+
+        //close
+        si.sequelize.close()
 
         return rs
     }
@@ -173,8 +190,11 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
+        //SeqInit
+        let si = SeqInit()
+
         //md
-        let md = mds[opt.cl]
+        let md = si.mds[opt.cl]
 
         //check
         if (!isarr(data)) {
@@ -192,15 +212,20 @@ function WOrmMssql(opt = {}) {
         }
 
         //bulkCreate
-        md.bulkCreate(data)
+        await md.bulkCreate(data)
             .then((res) => {
                 //console.log('bulkCreate then',res)
-                pm.resolve({ n: size(data), ok: 1 })
+                res = { n: size(data), ok: 1 }
+                pm.resolve(res)
+                ee.emit('change', 'insert', data, res)
             })
             .catch(({ original }) => {
                 //console.log('bulkCreate catch',original)
                 pm.reject({ n: 0, ok: 0 })
             })
+
+        //close
+        si.sequelize.close()
 
         return pm
     }
@@ -228,8 +253,11 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
+        //SeqInit
+        let si = SeqInit()
+
         //md
-        let md = mds[opt.cl]
+        let md = si.mds[opt.cl]
 
         //check
         if (!isarr(data)) {
@@ -250,14 +278,14 @@ function WOrmMssql(opt = {}) {
         let t = null
         let tr = {}
         if (atomic) {
-            t = await sequelize.transaction()
+            t = await si.sequelize.transaction()
             tr = {
                 transaction: t
             }
         }
 
         //pmSeries
-        pmSeries(data, async function(v) {
+        await pmSeries(data, async function(v) {
             let pmm = genPm()
 
             //err
@@ -338,6 +366,7 @@ function WOrmMssql(opt = {}) {
         })
             .then((res) => {
                 pm.resolve(res)
+                ee.emit('change', 'save', data, res)
                 if (t) {
                     //console.log('transaction commit')
                     return t.commit()
@@ -350,6 +379,9 @@ function WOrmMssql(opt = {}) {
                     return t.rollback()
                 }
             })
+
+        //close
+        si.sequelize.close()
 
         return pm
     }
@@ -370,8 +402,11 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
+        //SeqInit
+        let si = SeqInit()
+
         //md
-        let md = mds[opt.cl]
+        let md = si.mds[opt.cl]
 
         //check
         if (!isarr(data)) {
@@ -379,7 +414,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //pmSeries
-        pmSeries(data, async function(v) {
+        await pmSeries(data, async function(v) {
             let pmm = genPm()
 
             //err
@@ -436,10 +471,14 @@ function WOrmMssql(opt = {}) {
         })
             .then((res) => {
                 pm.resolve(res)
+                ee.emit('change', 'del', data, res)
             })
             .catch((res) => {
                 pm.reject(res)
             })
+
+        //close
+        si.sequelize.close()
 
         return pm
     }
@@ -457,31 +496,41 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
+        //SeqInit
+        let si = SeqInit()
+
         //md
-        let md = mds[opt.cl]
+        let md = si.mds[opt.cl]
 
         //destroy
-        md.destroy({
+        await md.destroy({
             where: find,
         })
             .then((res) => {
-                pm.resolve({ n: res, ok: 1 })
+                res = { n: res, ok: 1 }
+                pm.resolve(res)
+                ee.emit('change', 'delAll', null, res)
             })
             .catch((res) => {
                 pm.reject({ n: 0, ok: 1 })
             })
 
+        //close
+        si.sequelize.close()
+
         return pm
     }
 
 
-    return {
-        select,
-        insert,
-        save,
-        del,
-        delAll,
-    }
+    //bind
+    ee.select = select
+    ee.insert = insert
+    ee.save = save
+    ee.del = del
+    ee.delAll = delAll
+
+
+    return ee
 }
 
 

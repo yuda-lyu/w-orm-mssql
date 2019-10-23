@@ -12,12 +12,14 @@ rollupFiles({
     fdTar,
     nameDistType: 'kebabCase',
     globals: {
+        'events': 'events',
         'fs': 'fs',
         'path': 'path',
         'sequelize': 'sequelize',
         'mssql': 'mssql',
     },
     external: [
+        'events',
         'fs',
         'path',
         'sequelize',

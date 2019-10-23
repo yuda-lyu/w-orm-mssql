@@ -49,6 +49,12 @@ async function test() {
     let w = wo(opt)
 
 
+    //on
+    w.on('change', function(mode, data, res) {
+        console.log('change', mode)
+    })
+
+
     //delAll
     await w.delAll()
         .then(function(msg) {
