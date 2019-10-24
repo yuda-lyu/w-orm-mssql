@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="WOrmMssql.html">WOrmMssql</a><ul class='methods'><li data-type='method'><a href="WOrmMssql.html#.del">del</a></li><li data-type='method'><a href="WOrmMssql.html#.delAll">delAll</a></li><li data-type='method'><a href="WOrmMssql.html#.insert">insert</a></li><li data-type='method'><a href="WOrmMssql.html#.save">save</a></li><li data-type='method'><a href="WOrmMssql.html#.select">select</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="WOrmMssql.html">WOrmMssql</a><ul class='methods'><li data-type='method'><a href="WOrmMssql.html#.del">del</a></li><li data-type='method'><a href="WOrmMssql.html#.delAll">delAll</a></li><li data-type='method'><a href="WOrmMssql.html#.genModels">genModels</a></li><li data-type='method'><a href="WOrmMssql.html#.insert">insert</a></li><li data-type='method'><a href="WOrmMssql.html#.save">save</a></li><li data-type='method'><a href="WOrmMssql.html#.select">select</a></li></ul></li></ul>
 </nav>
 
 <div id="main">
@@ -71,7 +71,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line32">line 32</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line35">line 35</a>
     </li></ul></dd>
     
 
@@ -112,6 +112,7 @@
 
 <div class="description">
     <p>操作資料庫(Microsoft SQL)</p>
+<p>注意: 各model內id欄位不是主鍵(primary key)時需要強制更改成為主鍵，否則sequelize無法匯入</p>
 </div>
 
 
@@ -573,7 +574,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line397">line 397</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line400">line 400</a>
     </li></ul></dd>
     
 
@@ -734,7 +735,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line494">line 494</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line497">line 497</a>
     </li></ul></dd>
     
 
@@ -900,6 +901,488 @@
 
     
 
+    <h4 class="name" id=".genModels"><span class="type-signature">(static) </span>genModels<span class="signature">(option<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line544">line 544</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>由指定資料庫生成各表的models資料</p>
+<p>include from: <a href="https://github.com/yuda-lyu/w-auto-sequelize">w-auto-sequelize</a></p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>option</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入設定物件，預設{}</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>database</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入資料庫名稱字串，預設null</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>username</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入使用者名稱字串，預設null</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>password</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入密碼字串，預設null</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dialect</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入資料庫種類字串，預設null，可選'mysql', 'mariadb', 'sqlite', 'postgres', 'mssql'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>directory</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'./models'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入models儲存的資料夾名稱字串，預設'./models'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>host</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>'localhost'</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入連線主機host位址字串，預設'localhost'</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>port</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入連線主機port整數，預設null</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>回傳Promise，resolve回傳產生的models資料，reject回傳錯誤訊息</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id=".insert"><span class="type-signature">(async, static) </span>insert<span class="signature">(data)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
@@ -912,7 +1395,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line185">line 185</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -1073,7 +1556,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line244">line 244</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line247">line 247</a>
     </li></ul></dd>
     
 
@@ -1397,7 +1880,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line95">line 95</a>
+        <a href="WOrmMssql.mjs.html">WOrmMssql.mjs</a>, <a href="WOrmMssql.mjs.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -1578,7 +2061,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Wed Oct 23 2019 21:58:50 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Oct 24 2019 12:28:07 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
