@@ -14,7 +14,7 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `fs`, `path` and `events`.
+> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `async`, `eslint`, `fs`, `path` and `events`.
 
 ```alias
 npm i w-orm-mssql
@@ -28,6 +28,7 @@ let opt = {
     url: 'mssql://username:password@localhost',
     db: 'worm',
     cl: 'users',
+    fdModels: 'models',
     //autoGenPK: false,
 }
 
@@ -75,10 +76,11 @@ async function test() {
     await w.genModels({
         username: 'username',
         password: 'password',
-        dialect: 'mssql',
-        directory: './models',
-        host: 'localhost',
-        port: 1433,
+        // dialect: 'mssql', //default
+        // host: 'localhost', //default
+        // port: 1433, //default
+        // database from opt.db
+        // directory from opt.fdModels
     })
 
 

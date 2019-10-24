@@ -2,10 +2,13 @@ import wo from './src/WOrmMssql.mjs'
 //import wo from './dist/w-orm-mssql.umd.js'
 
 
+let username = 'username'
+let password = 'password'
 let opt = {
-    url: 'mssql://username:password@localhost',
+    url: `mssql://${username}:${password}@localhost`,
     db: 'worm',
     cl: 'users',
+    fdModels: 'models',
     //autoGenPK: false,
 }
 
@@ -51,12 +54,13 @@ async function test() {
 
     //genModels, disable if got models
     await w.genModels({
-        username: 'username',
-        password: 'password',
-        dialect: 'mssql',
-        directory: './models',
-        host: 'localhost',
-        port: 1433,
+        username,
+        password,
+        // dialect: 'mssql', //default
+        // host: 'localhost', //default
+        // port: 1433, //default
+        // database from opt.db
+        // directory from opt.fdModels
     })
 
 

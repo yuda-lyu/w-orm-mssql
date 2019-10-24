@@ -549,7 +549,7 @@ function WOrmMssql(opt = {}) {
             username: 'username',
             password: 'password',
             dialect: 'mssql',
-            directory: './models',
+            //directory: './models',
             host: 'localhost',
             port: 1433,
         }
@@ -563,6 +563,11 @@ function WOrmMssql(opt = {}) {
         //database
         if (!option.database) {
             option.database = opt.db
+        }
+
+        //directory
+        if (!option.directory) {
+            option.directory = opt.fdModels
         }
 
         //WAutoSequelize
