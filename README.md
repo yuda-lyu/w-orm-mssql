@@ -24,8 +24,10 @@ npm i w-orm-mssql
 ```alias
 import wo from 'w-orm-mssql'
 
+let username = 'username'
+let password = 'password'
 let opt = {
-    url: 'mssql://username:password@localhost',
+    url: `mssql://${username}:${password}@localhost`,
     db: 'worm',
     cl: 'users',
     fdModels: 'models',
