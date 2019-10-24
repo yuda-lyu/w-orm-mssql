@@ -14,7 +14,7 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 
 ## Installation
 ### Using npm(ES6 module):
-> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `async`, `eslint`, `fs`, `path` and `events`.
+> **Note:** `w-orm-mssql` depends on `sequelize`, `mssql`, `async` and `eslint`.
 
 ```alias
 npm i w-orm-mssql
