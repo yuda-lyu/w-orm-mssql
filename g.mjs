@@ -49,6 +49,17 @@ async function test() {
     let w = wo(opt)
 
 
+    //genModels, disable if got models
+    await w.genModels({
+        username: 'username',
+        password: 'password',
+        dialect: 'mssql',
+        directory: './models',
+        host: 'localhost',
+        port: 1433,
+    })
+
+
     //on
     w.on('change', function(mode, data, res) {
         console.log('change', mode)

@@ -19,8 +19,8 @@ To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-
 ```alias
 npm i w-orm-mssql
 ```
-#### Example for collection
-> **Link:** [[dev source code](https://github.com/yuda-lyu/w-orm-mssql/blob/master/ga.mjs)]
+#### Example for the table in database
+> **Link:** [[dev source code](https://github.com/yuda-lyu/w-orm-mssql/blob/master/g.mjs)]
 ```alias
 import wo from 'w-orm-mssql'
 
@@ -69,6 +69,17 @@ async function test() {
 
     //w
     let w = wo(opt)
+
+
+    //genModels, disable if got models
+    await w.genModels({
+        username: 'username',
+        password: 'password',
+        dialect: 'mssql',
+        directory: './models',
+        host: 'localhost',
+        port: 1433,
+    })
 
 
     //on

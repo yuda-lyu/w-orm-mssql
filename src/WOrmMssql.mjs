@@ -12,11 +12,14 @@ import isobj from 'wsemi/src/isobj.mjs'
 import isbol from 'wsemi/src/isbol.mjs'
 import strright from 'wsemi/src/strright.mjs'
 import pmSeries from 'wsemi/src/pmSeries.mjs'
+import WAutoSequelize from 'w-auto-sequelize/src/WAutoSequelize.mjs'
 import importModels from './importModels.mjs'
 
 
 /**
  * 操作資料庫(Microsoft SQL)
+ *
+ * 注意: 各model內id欄位不是主鍵(primary key)時需要強制更改成為主鍵，否則sequelize無法匯入
  *
  * @class
  * @param {Object} [opt={}] 輸入設定物件，預設{}
@@ -71,7 +74,7 @@ function WOrmMssql(opt = {}) {
             logging: opt.logging,
         })
 
-        //mds
+        //mds, 若model內id不是pk則需要強制更改成為pk, 否則sequelize無法匯入
         let mds = importModels(opt.fdModels, sequelize)
 
         return {
@@ -522,7 +525,54 @@ function WOrmMssql(opt = {}) {
     }
 
 
+    /**
+     * 由指定資料庫生成各表的models資料
+     *
+     * include from: [w-auto-sequelize](https://github.com/yuda-lyu/w-auto-sequelize)
+     *
+     * @memberOf WOrmMssql
+     * @param {Object} [option={}] 輸入設定物件，預設{}
+     * @param {String} [option.database=null] 輸入資料庫名稱字串，預設null
+     * @param {String} [option.username=null] 輸入使用者名稱字串，預設null
+     * @param {String} [option.password=null] 輸入密碼字串，預設null
+     * @param {String} [option.dialect=null] 輸入資料庫種類字串，預設null，可選'mysql', 'mariadb', 'sqlite', 'postgres', 'mssql'
+     * @param {String} [option.directory='./models'] 輸入models儲存的資料夾名稱字串，預設'./models'
+     * @param {String} [option.host='localhost'] 輸入連線主機host位址字串，預設'localhost'
+     * @param {Integer} [option.port=null] 輸入連線主機port整數，預設null
+     * @returns {Promise} 回傳Promise，resolve回傳產生的models資料，reject回傳錯誤訊息
+     */
+    function genModels(option = {}) {
+
+        //default
+        let def = {
+            //database: 'database',
+            username: 'username',
+            password: 'password',
+            dialect: 'mssql',
+            directory: './models',
+            host: 'localhost',
+            port: 1433,
+        }
+
+        //merge
+        option = {
+            ...def,
+            ...option,
+        }
+
+        //database
+        if (!option.database) {
+            option.database = opt.db
+        }
+
+        //WAutoSequelize
+        return WAutoSequelize(option)
+
+    }
+
+
     //bind
+    ee.genModels = genModels
     ee.select = select
     ee.insert = insert
     ee.save = save

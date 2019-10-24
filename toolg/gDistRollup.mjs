@@ -1,5 +1,4 @@
 import rollupFiles from 'w-package-tools/src/rollupFiles.mjs'
-import getFiles from 'w-package-tools/src/getFiles.mjs'
 
 
 let fdSrc = './src'
@@ -7,7 +6,7 @@ let fdTar = './dist'
 
 
 rollupFiles({
-    fns: getFiles(fdSrc),
+    fns: 'WOrmMssql.mjs',
     fdSrc,
     fdTar,
     nameDistType: 'kebabCase',
@@ -17,6 +16,8 @@ rollupFiles({
         'path': 'path',
         'sequelize': 'sequelize',
         'mssql': 'mssql',
+        'async': 'async',
+        'eslint': 'eslint',
     },
     external: [
         'events',
@@ -24,6 +25,8 @@ rollupFiles({
         'path',
         'sequelize',
         'mssql',
+        'async',
+        'eslint',
     ],
 })
 
