@@ -53,15 +53,15 @@ async function test() {
 
 
     //genModels, disable if got models
-    // await w.genModels({
-    //     username,
-    //     password,
-    //     // dialect: 'mssql', //default
-    //     // host: 'localhost', //default
-    //     // port: 1433, //default
-    //     // database from opt.db
-    //     // directory from opt.fdModels
-    // })
+    await w.genModels({
+        username,
+        password,
+        // dialect: 'mssql', //default
+        // host: 'localhost', //default
+        // port: 1433, //default
+        // database from opt.db
+        // directory from opt.fdModels
+    })
 
 
     //on
