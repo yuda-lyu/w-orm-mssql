@@ -5,13 +5,13 @@ import get from 'lodash/get'
 import map from 'lodash/map'
 import each from 'lodash/each'
 import size from 'lodash/size'
+import split from 'lodash/split'
 import genPm from 'wsemi/src/genPm.mjs'
 import genID from 'wsemi/src/genID.mjs'
 import isarr from 'wsemi/src/isarr.mjs'
 import isobj from 'wsemi/src/isobj.mjs'
 import isbol from 'wsemi/src/isbol.mjs'
 import iser from 'wsemi/src/iser.mjs'
-import strright from 'wsemi/src/strright.mjs'
 import pmSeries from 'wsemi/src/pmSeries.mjs'
 import WAutoSequelize from 'w-auto-sequelize/src/WAutoSequelize.mjs'
 import importModels from './importModels.mjs'
@@ -24,7 +24,7 @@ import importModels from './importModels.mjs'
  *
  * @class
  * @param {Object} [opt={}] 輸入設定物件，預設{}
- * @param {String} [opt.url='mssql://localhost:1433'] 輸入連接資料庫字串，預設'mssql://localhost:1433'
+ * @param {String} [opt.url='mssql://username:password@localhost:1433'] 輸入連接資料庫字串，預設'mssql://username:password@localhost:1433'
  * @param {String} [opt.db='worm'] 輸入使用資料庫名稱字串，預設'worm'
  * @param {String} [opt.cl='test'] 輸入使用資料表名稱字串，預設'test'
  * @param {String} [opt.fdModels='models'] 輸入資料表models(各檔為*.js)所在資料夾字串，預設'models'
@@ -34,11 +34,13 @@ import importModels from './importModels.mjs'
  * @returns {Object} 回傳操作資料庫物件，各事件功能詳見說明
  */
 function WOrmMssql(opt = {}) {
+    let ss
+    let u
 
 
     //default
     if (!opt.url) {
-        opt.url = 'mssql://localhost:1433'
+        opt.url = 'mssql://username:password@localhost:1433'
     }
     if (!opt.db) {
         opt.db = 'worm'
@@ -48,9 +50,6 @@ function WOrmMssql(opt = {}) {
     }
     if (!opt.fdModels) {
         opt.fdModels = 'models'
-    }
-    if (strright(opt.url, 1) !== '/') {
-        opt.url += '/' + opt.db
     }
     opt.logging = (opt.logging === true)
     if (!opt.pk) {
@@ -65,15 +64,92 @@ function WOrmMssql(opt = {}) {
     let ee = new events.EventEmitter()
 
 
-    function SeqInit() {
+    //dialect
+    let dialect
+    ss = split(opt.url, '://')
+    dialect = get(ss, 0, null)
+    if (!dialect) {
+        console.log('invalid dialect in opt.url')
+        return ee
+    }
+    u = get(ss, 1, '') //另存給後面使用
+
+
+    //username, password
+    let username
+    let password
+    if (u.indexOf('@') < 0) {
+        console.log('invalid username or password in opt.url')
+        return ee
+    }
+    ss = split(u, '@')
+    u = get(ss, 1, '') //另存給後面使用
+    ss = get(ss, 0, '')
+    ss = split(ss, ':')
+    if (size(ss) !== 2) {
+        console.log('invalid username or password in opt.url')
+        return ee
+    }
+    username = get(ss, 0, null)
+    password = get(ss, 1, null)
+    if (!username) {
+        console.log('invalid username in opt.url')
+        return ee
+    }
+    if (!password) {
+        console.log('invalid password in opt.url')
+        return ee
+    }
+
+
+    //host, port
+    let host
+    let port
+    ss = split(u, ':')
+    if (size(ss) !== 2) {
+        console.log('invalid host or port in opt.url')
+        return ee
+    }
+    host = get(ss, 0, null)
+    port = get(ss, 1, null)
+    if (!host) {
+        console.log('invalid host in opt.url')
+        return ee
+    }
+    if (!port) {
+        console.log('invalid port in opt.url')
+        return ee
+    }
+
+
+    //sequelize
+    let sequelize
+    function initSequelize() {
         let err = null
 
         //sequelize
-        let sequelize = new Sequelize(opt.url, {
+        sequelize = new Sequelize(opt.db, username, password, {
+            dialect,
+            host,
+            port,
+            logging: opt.logging,
             define: {
+                //underscored: false,
+                //freezeTableName: false,
+                //syncOnAssociation: true,
+                //charset: 'utf8',
+                //dialectOptions: {
+                //  collate: 'utf8_general_ci'
+                //},
                 timestamps: false
             },
-            logging: opt.logging,
+            // pool: {
+            //     max: 20,
+            //     min: 0,
+            //     acquire: 30000, //The maximum time, in milliseconds, that pool will try to get connection before throwing error
+            //     idle: 10000 //The maximum time, in milliseconds, that a connection can be idle before being released.
+            // },
+            //sync: { force: true }, //強制同步
         })
 
         //mds, 若model內id不是pk則需要強制更改成為pk, 否則sequelize無法匯入
@@ -85,7 +161,6 @@ function WOrmMssql(opt = {}) {
         }
 
         return {
-            sequelize,
             mds,
             err,
         }
@@ -167,8 +242,8 @@ function WOrmMssql(opt = {}) {
         //useFind
         let useFind = cvFind(find)
 
-        //SeqInit
-        let si = SeqInit()
+        //initSequelize
+        let si = initSequelize()
 
         //rs
         let rs = null
@@ -189,7 +264,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //close
-        si.sequelize.close()
+        sequelize.close()
 
         return rs
     }
@@ -210,8 +285,8 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
-        //SeqInit
-        let si = SeqInit()
+        //initSequelize
+        let si = initSequelize()
 
         if (!si.err) {
 
@@ -252,7 +327,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //close
-        si.sequelize.close()
+        sequelize.close()
 
         return pm
     }
@@ -280,8 +355,8 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
-        //SeqInit
-        let si = SeqInit()
+        //initSequelize
+        let si = initSequelize()
 
         if (!si.err) {
 
@@ -307,7 +382,7 @@ function WOrmMssql(opt = {}) {
             let t = null
             let tr = {}
             if (atomic) {
-                t = await si.sequelize.transaction()
+                t = await sequelize.transaction()
                 tr = {
                     transaction: t
                 }
@@ -415,7 +490,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //close
-        si.sequelize.close()
+        sequelize.close()
 
         return pm
     }
@@ -436,8 +511,8 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
-        //SeqInit
-        let si = SeqInit()
+        //initSequelize
+        let si = initSequelize()
 
         if (!si.err) {
 
@@ -519,7 +594,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //close
-        si.sequelize.close()
+        sequelize.close()
 
         return pm
     }
@@ -537,8 +612,8 @@ function WOrmMssql(opt = {}) {
         //pm
         let pm = genPm()
 
-        //SeqInit
-        let si = SeqInit()
+        //initSequelize
+        let si = initSequelize()
 
         if (!si.err) {
 
@@ -564,7 +639,7 @@ function WOrmMssql(opt = {}) {
         }
 
         //close
-        si.sequelize.close()
+        sequelize.close()
 
         return pm
     }

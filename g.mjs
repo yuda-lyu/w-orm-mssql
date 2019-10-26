@@ -5,7 +5,7 @@ import wo from './src/WOrmMssql.mjs'
 let username = 'username'
 let password = 'password'
 let opt = {
-    url: `mssql://${username}:${password}@localhost`,
+    url: `mssql://${username}:${password}@localhost:1433`,
     db: 'worm',
     cl: 'users',
     fdModels: 'models',
