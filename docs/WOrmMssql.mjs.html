@@ -54,6 +54,7 @@ import genID from 'wsemi/src/genID.mjs'
 import isarr from 'wsemi/src/isarr.mjs'
 import isobj from 'wsemi/src/isobj.mjs'
 import isbol from 'wsemi/src/isbol.mjs'
+import iser from 'wsemi/src/iser.mjs'
 import strright from 'wsemi/src/strright.mjs'
 import pmSeries from 'wsemi/src/pmSeries.mjs'
 import WAutoSequelize from 'w-auto-sequelize/src/WAutoSequelize.mjs'
@@ -109,6 +110,7 @@ function WOrmMssql(opt = {}) {
 
 
     function SeqInit() {
+        let err = null
 
         //sequelize
         let sequelize = new Sequelize(opt.url, {
@@ -119,11 +121,17 @@ function WOrmMssql(opt = {}) {
         })
 
         //mds, 若model內id不是pk則需要強制更改成為pk, 否則sequelize無法匯入
-        let mds = importModels(opt.fdModels, sequelize)
+        let mds = importModels(opt.fdModels, sequelize, opt.cl)
+
+        //check
+        if (iser(mds)) {
+            err = `can not import model: ${opt.cl}, need to use genModels or create ${opt.cl}.js`
+        }
 
         return {
             sequelize,
-            mds
+            mds,
+            err,
         }
     }
 
@@ -206,14 +214,23 @@ function WOrmMssql(opt = {}) {
         //SeqInit
         let si = SeqInit()
 
-        //md
-        let md = si.mds[opt.cl]
+        //rs
+        let rs = null
+        if (!si.err) {
 
-        //findAll
-        let rs = await md.findAll({
-            where: useFind,
-            raw: true,
-        })
+            //md
+            let md = si.mds[opt.cl]
+
+            //findAll
+            rs = await md.findAll({
+                where: useFind,
+                raw: true,
+            })
+
+        }
+        else {
+            console.log('select: ', si.err)
+        }
 
         //close
         si.sequelize.close()
@@ -240,36 +257,43 @@ function WOrmMssql(opt = {}) {
         //SeqInit
         let si = SeqInit()
 
-        //md
-        let md = si.mds[opt.cl]
+        if (!si.err) {
 
-        //check
-        if (!isarr(data)) {
-            data = [data]
-        }
+            //md
+            let md = si.mds[opt.cl]
 
-        //check
-        if (opt.autoGenPK) {
-            data = map(data, function(v) {
-                if (!v[opt.pk]) {
-                    v[opt.pk] = genID()
-                }
-                return v
-            })
-        }
+            //check
+            if (!isarr(data)) {
+                data = [data]
+            }
 
-        //bulkCreate
-        await md.bulkCreate(data)
-            .then((res) => {
+            //check
+            if (opt.autoGenPK) {
+                data = map(data, function(v) {
+                    if (!v[opt.pk]) {
+                        v[opt.pk] = genID()
+                    }
+                    return v
+                })
+            }
+
+            //bulkCreate
+            await md.bulkCreate(data)
+                .then((res) => {
                 //console.log('bulkCreate then',res)
-                res = { n: size(data), ok: 1 }
-                pm.resolve(res)
-                ee.emit('change', 'insert', data, res)
-            })
-            .catch(({ original }) => {
+                    res = { n: size(data), ok: 1 }
+                    pm.resolve(res)
+                    ee.emit('change', 'insert', data, res)
+                })
+                .catch(({ original }) => {
                 //console.log('bulkCreate catch',original)
-                pm.reject({ n: 0, ok: 0 })
-            })
+                    pm.reject({ n: 0, ok: 0 })
+                })
+
+        }
+        else {
+            pm.reject(si.err)
+        }
 
         //close
         si.sequelize.close()
@@ -303,129 +327,136 @@ function WOrmMssql(opt = {}) {
         //SeqInit
         let si = SeqInit()
 
-        //md
-        let md = si.mds[opt.cl]
+        if (!si.err) {
 
-        //check
-        if (!isarr(data)) {
-            data = [data]
-        }
+            //md
+            let md = si.mds[opt.cl]
 
-        //check
-        if (opt.autoGenPK) {
-            data = map(data, function(v) {
-                if (!v[opt.pk]) {
-                    v[opt.pk] = genID()
-                }
-                return v
-            })
-        }
-
-        //tr
-        let t = null
-        let tr = {}
-        if (atomic) {
-            t = await si.sequelize.transaction()
-            tr = {
-                transaction: t
+            //check
+            if (!isarr(data)) {
+                data = [data]
             }
-        }
 
-        //pmSeries
-        await pmSeries(data, async function(v) {
-            let pmm = genPm()
+            //check
+            if (opt.autoGenPK) {
+                data = map(data, function(v) {
+                    if (!v[opt.pk]) {
+                        v[opt.pk] = genID()
+                    }
+                    return v
+                })
+            }
 
-            //err
-            let err = null
+            //tr
+            let t = null
+            let tr = {}
+            if (atomic) {
+                t = await si.sequelize.transaction()
+                tr = {
+                    transaction: t
+                }
+            }
 
-            //r
-            let r
-            if (v[opt.pk]) {
+            //pmSeries
+            await pmSeries(data, async function(v) {
+                let pmm = genPm()
+
+                //err
+                let err = null
+
+                //r
+                let r
+                if (v[opt.pk]) {
                 //有id
 
-                //findOne
-                r = await md.findOne({
-                    where: { [opt.pk]: v[opt.pk] },
-                    raw: true,
-                })
-                    .catch((error) => {
-                        err = error
+                    //findOne
+                    r = await md.findOne({
+                        where: { [opt.pk]: v[opt.pk] },
+                        raw: true,
                     })
+                        .catch((error) => {
+                            err = error
+                        })
 
-            }
-            else {
-                //沒有id
-                err = `${opt.pk} is invalid`
-            }
-
-            if (r) {
-                //有找到資料
-
-                let rr = await md.update(v, {
-                    where: { [opt.pk]: v[opt.pk] },
-                    ...tr,
-                })
-                    .catch((error) => {
-                        err = error
-                    })
-
-                if (rr) {
-                    //console.log('update 有更新資料', rr)
-                    pmm.resolve({ n: 1, nModified: 1, ok: 1 })
                 }
                 else {
-                    //console.log('update 沒有更新資料', err)
-                    pmm.resolve({ n: 0, nInserted: 0, ok: 1 })
+                //沒有id
+                    err = `${opt.pk} is invalid`
                 }
 
-            }
-            else {
-                //沒有找到資料
+                if (r) {
+                //有找到資料
 
-                //autoInsert
-                if (autoInsert) {
-
-                    //create
-                    let rr = await md.create(v, tr)
+                    let rr = await md.update(v, {
+                        where: { [opt.pk]: v[opt.pk] },
+                        ...tr,
+                    })
                         .catch((error) => {
                             err = error
                         })
 
                     if (rr) {
-                        //console.log('create 有插入資料', rr)
-                        pmm.resolve({ n: 1, nInserted: 1, ok: 1 })
+                    //console.log('update 有更新資料', rr)
+                        pmm.resolve({ n: 1, nModified: 1, ok: 1 })
                     }
                     else {
-                        //console.log('create 沒有插入資料', err)
+                    //console.log('update 沒有更新資料', err)
                         pmm.resolve({ n: 0, nInserted: 0, ok: 1 })
                     }
 
                 }
                 else {
+                //沒有找到資料
+
+                    //autoInsert
+                    if (autoInsert) {
+
+                        //create
+                        let rr = await md.create(v, tr)
+                            .catch((error) => {
+                                err = error
+                            })
+
+                        if (rr) {
+                        //console.log('create 有插入資料', rr)
+                            pmm.resolve({ n: 1, nInserted: 1, ok: 1 })
+                        }
+                        else {
+                        //console.log('create 沒有插入資料', err)
+                            pmm.resolve({ n: 0, nInserted: 0, ok: 1 })
+                        }
+
+                    }
+                    else {
                     //console.log('findOne 沒有找到資料也不自動插入', err)
-                    pmm.resolve({ n: 0, nModified: 0, ok: 1 })
+                        pmm.resolve({ n: 0, nModified: 0, ok: 1 })
+                    }
+
                 }
 
-            }
-
-            pmm._err = err //避免eslint錯誤訊息
-            return pmm
-        })
-            .then((res) => {
-                pm.resolve(res)
-                ee.emit('change', 'save', data, res)
-                if (t) {
+                pmm._err = err //避免eslint錯誤訊息
+                return pmm
+            })
+                .then((res) => {
+                    pm.resolve(res)
+                    ee.emit('change', 'save', data, res)
+                    if (t) {
                     //console.log('transaction commit')
-                    return t.commit()
-                }
-            })
-            .catch((res) => {
-                pm.reject(res)
-                if (t) {
+                        return t.commit()
+                    }
+                })
+                .catch((res) => {
+                    pm.reject(res)
+                    if (t) {
                     //console.log('transaction rollback')
-                    return t.rollback()
-                }
-            })
+                        return t.rollback()
+                    }
+                })
+
+        }
+        else {
+            pm.reject(si.err)
+        }
 
         //close
         si.sequelize.close()
@@ -452,77 +483,84 @@ function WOrmMssql(opt = {}) {
         //SeqInit
         let si = SeqInit()
 
-        //md
-        let md = si.mds[opt.cl]
+        if (!si.err) {
 
-        //check
-        if (!isarr(data)) {
-            data = [data]
-        }
+            //md
+            let md = si.mds[opt.cl]
 
-        //pmSeries
-        await pmSeries(data, async function(v) {
-            let pmm = genPm()
+            //check
+            if (!isarr(data)) {
+                data = [data]
+            }
 
-            //err
-            let err = null
+            //pmSeries
+            await pmSeries(data, async function(v) {
+                let pmm = genPm()
 
-            //r
-            let r
-            if (v[opt.pk]) {
+                //err
+                let err = null
+
+                //r
+                let r
+                if (v[opt.pk]) {
                 //有id
 
-                //findOne
-                r = await md.findOne({
-                    where: { [opt.pk]: v[opt.pk] },
-                    raw: true,
-                })
-                    .catch((error) => {
-                        err = error
+                    //findOne
+                    r = await md.findOne({
+                        where: { [opt.pk]: v[opt.pk] },
+                        raw: true,
                     })
+                        .catch((error) => {
+                            err = error
+                        })
 
-            }
-            else {
-                //沒有id
-                err = `${opt.pk} is invalid`
-            }
-
-            if (r) {
-                //有找到資料
-
-                //destroy
-                let rr = await md.destroy({
-                    where: { [opt.pk]: v[opt.pk] },
-                })
-                    .catch((error) => {
-                        err = error
-                    })
-
-                if (rr) {
-                    //console.log('destroy 有刪除資料', rr)
-                    pmm.resolve({ n: 1, nDeleted: 1, ok: 1 })
                 }
                 else {
-                    //console.log('destroy 沒有刪除資料', err)
-                    pmm.resolve({ n: 0, nDeleted: 0, ok: 1 })
+                //沒有id
+                    err = `${opt.pk} is invalid`
                 }
 
-            }
-            else {
-                //console.log('findOne 沒有找到資料', err)
-                pmm.resolve({ n: 1, nDeleted: 1, ok: 1 })
-            }
+                if (r) {
+                //有找到資料
 
-            pmm._err = err //避免eslint錯誤訊息
-            return pmm
-        })
-            .then((res) => {
-                pm.resolve(res)
-                ee.emit('change', 'del', data, res)
+                    //destroy
+                    let rr = await md.destroy({
+                        where: { [opt.pk]: v[opt.pk] },
+                    })
+                        .catch((error) => {
+                            err = error
+                        })
+
+                    if (rr) {
+                    //console.log('destroy 有刪除資料', rr)
+                        pmm.resolve({ n: 1, nDeleted: 1, ok: 1 })
+                    }
+                    else {
+                    //console.log('destroy 沒有刪除資料', err)
+                        pmm.resolve({ n: 0, nDeleted: 0, ok: 1 })
+                    }
+
+                }
+                else {
+                //console.log('findOne 沒有找到資料', err)
+                    pmm.resolve({ n: 1, nDeleted: 1, ok: 1 })
+                }
+
+                pmm._err = err //避免eslint錯誤訊息
+                return pmm
             })
-            .catch((res) => {
-                pm.reject(res)
-            })
+                .then((res) => {
+                    pm.resolve(res)
+                    ee.emit('change', 'del', data, res)
+                })
+                .catch((res) => {
+                    pm.reject(res)
+                })
+
+        }
+        else {
+            pm.reject(si.err)
+        }
 
         //close
         si.sequelize.close()
@@ -546,21 +584,28 @@ function WOrmMssql(opt = {}) {
         //SeqInit
         let si = SeqInit()
 
-        //md
-        let md = si.mds[opt.cl]
+        if (!si.err) {
 
-        //destroy
-        await md.destroy({
-            where: find,
-        })
-            .then((res) => {
-                res = { n: res, ok: 1 }
-                pm.resolve(res)
-                ee.emit('change', 'delAll', null, res)
+            //md
+            let md = si.mds[opt.cl]
+
+            //destroy
+            await md.destroy({
+                where: find,
             })
-            .catch((res) => {
-                pm.reject({ n: 0, ok: 1 })
-            })
+                .then((res) => {
+                    res = { n: res, ok: 1 }
+                    pm.resolve(res)
+                    ee.emit('change', 'delAll', null, res)
+                })
+                .catch((res) => {
+                    pm.reject({ n: 0, ok: 1 })
+                })
+
+        }
+        else {
+            pm.reject(si.err)
+        }
 
         //close
         si.sequelize.close()
@@ -648,7 +693,7 @@ export default WOrmMssql
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Fri Oct 25 2019 16:41:23 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sat Oct 26 2019 11:33:11 GMT+0800 (GMT+08:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

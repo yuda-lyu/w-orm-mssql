@@ -4,10 +4,17 @@ import getPathInFolder from 'wsemi/src/getPathInFolder.mjs'
 import modifyModel from './modifyModel.mjs'
 
 
-function importModels(fdModels, sequelize) {
+function importModels(fdModels, sequelize, name = null) {
 
     //files
     let files = getPathInFolder(fdModels)
+
+    //name
+    if (name) {
+        files = files.filter((v) => {
+            return v === `${name}.js` //需區分大小寫
+        })
+    }
 
     //fparent
     let fparent = path.dirname(path.resolve(fdModels)) + path.sep + fdModels + path.sep

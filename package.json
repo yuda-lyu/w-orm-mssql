@@ -1,6 +1,6 @@
 {
   "name": "w-orm-mssql",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "An object of operator for MSSQL in nodejs, like a simple ORM.",
   "main": "dist/w-orm-mssql.umd.js",
   "dependencies": {
